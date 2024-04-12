@@ -30,7 +30,7 @@ namespace RazorLight.Tests
 			engineMock.SetupGet(e => e.Options).Returns(options);
 
 			//Act
-			var templateRenderer = new TemplateRenderer(engineMock.Object, HtmlEncoder.Default, new MemoryPoolViewBufferScope());
+			var templateRenderer = new TemplateRenderer(engineMock.Object, new MemoryPoolViewBufferScope());
 			await templateRenderer.RenderAsync(page);
 
 			//Assert
@@ -41,14 +41,12 @@ namespace RazorLight.Tests
 		[Fact]
 		public async Task Template_Shares_Context_With_Layout()
 		{
-			var encoder = new TemplatePageTest.HtmlTestEncoder();
-
-			string expected = encoder.Encode("Begin Layout") +
-							  encoder.Encode("Hello") +
-							  encoder.Encode("Begin") +
-							  encoder.Encode("Hello") +
-							  encoder.Encode("End") +
-							  encoder.Encode("End Layout");
+			string expected = "Begin Layout" +
+							  "Hello" +
+							  "Begin" +
+							  "Hello" +
+							  "End" +
+							  "End Layout";
 
 			var layout = TemplatePageTest.CreatePage(v =>
 			{
@@ -83,7 +81,7 @@ namespace RazorLight.Tests
 			using (var writer = new StringWriter())
 			{
 				page.PageContext.Writer = writer;
-				var renderer = new TemplateRenderer(engineMock.Object, encoder, new MemoryPoolViewBufferScope());
+				var renderer = new TemplateRenderer(engineMock.Object, new MemoryPoolViewBufferScope());
 				await renderer.RenderAsync(page);
 
 				output = writer.ToString();

@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Html;
-using RazorLight.Internal;
+﻿using RazorLight.Internal;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -33,7 +32,7 @@ namespace RazorLight
 		/// In a Razor layout page, renders the portion of a content page that is not within a named section.
 		/// </summary>
 		/// <returns>The HTML content to render.</returns>
-		protected virtual IHtmlContent RenderBody()
+		protected virtual string RenderBody()
 		{
 			if (BodyContent == null)
 			{
@@ -99,11 +98,11 @@ namespace RazorLight
 		/// In layout pages, renders the content of the section named <paramref name="name"/>.
 		/// </summary>
 		/// <param name="name">The name of the section to render.</param>
-		/// <returns>An empty <see cref="IHtmlContent"/>.</returns>
+		/// <returns>An empty <see cref="string"/>.</returns>
 		/// <remarks>The method writes to the <see cref="TemplatePageBase.Output"/> and the value returned is a token
 		/// value that allows the Write (produced due to @RenderSection(..)) to succeed. However the
 		/// value does not represent the rendered content.</remarks>
-		public HtmlString RenderSection(string name)
+		public string RenderSection(string name)
 		{
 			if (name == null)
 			{
@@ -118,11 +117,11 @@ namespace RazorLight
 		/// </summary>
 		/// <param name="name">The section to render.</param>
 		/// <param name="required">Indicates if this section must be rendered.</param>
-		/// <returns>An empty <see cref="IHtmlContent"/>.</returns>
+		/// <returns>An empty <see cref="string"/>.</returns>
 		/// <remarks>The method writes to the <see cref="TemplatePageBase.Output"/> and the value returned is a token
 		/// value that allows the Write (produced due to @RenderSection(..)) to succeed. However the
 		/// value does not represent the rendered content.</remarks>
-		public HtmlString RenderSection(string name, bool required)
+		public string RenderSection(string name, bool required)
 		{
 			if (name == null)
 			{
@@ -140,12 +139,12 @@ namespace RazorLight
 		/// </summary>
 		/// <param name="name">The section to render.</param>
 		/// <returns>
-		/// A <see cref="Task{HtmlString}"/> that on completion returns an empty <see cref="IHtmlContent"/>.
+		/// A <see cref="Task{string}"/> that on completion returns an empty <see cref="string"/>.
 		/// </returns>
 		/// <remarks>The method writes to the <see cref="TemplatePageBase.Output"/> and the value returned is a token
 		/// value that allows the Write (produced due to @RenderSection(..)) to succeed. However the
 		/// value does not represent the rendered content.</remarks>
-		public Task<HtmlString> RenderSectionAsync(string name)
+		public Task<string> RenderSectionAsync(string name)
 		{
 			if (name == null)
 			{
@@ -162,14 +161,14 @@ namespace RazorLight
 		/// <param name="required">Indicates the <paramref name="name"/> section must be registered
 		/// (using <c>@section</c>) in the page.</param>
 		/// <returns>
-		/// A <see cref="Task{HtmlString}"/> that on completion returns an empty <see cref="IHtmlContent"/>.
+		/// A <see cref="Task{string}"/> that on completion returns an empty <see cref="string"/>.
 		/// </returns>
 		/// <remarks>The method writes to the <see cref="TemplatePageBase.Output"/> and the value returned is a token
 		/// value that allows the Write (produced due to @RenderSection(..)) to succeed. However the
 		/// value does not represent the rendered content.</remarks>
 		/// <exception cref="InvalidOperationException">if <paramref name="required"/> is <c>true</c> and the section
 		/// was not registered using the <c>@section</c> in the Razor page.</exception>
-		public Task<HtmlString> RenderSectionAsync(string name, bool required)
+		public Task<string> RenderSectionAsync(string name, bool required)
 		{
 			if (name == null)
 			{
@@ -180,7 +179,7 @@ namespace RazorLight
 			return RenderSectionAsyncCore(name, required);
 		}
 
-		private async Task<HtmlString> RenderSectionAsyncCore(string sectionName, bool required)
+		private async Task<string> RenderSectionAsyncCore(string sectionName, bool required)
 		{
 			if (_renderedSections.Contains(sectionName))
 			{
@@ -195,7 +194,7 @@ namespace RazorLight
 
 				// Return a token value that allows the Write call that wraps the RenderSection \ RenderSectionAsync
 				// to succeed.
-				return HtmlString.Empty;
+				return string.Empty;
 			}
 			else if (required)
 			{

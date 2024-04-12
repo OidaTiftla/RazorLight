@@ -3,11 +3,8 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Reflection;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.Hosting;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
@@ -157,32 +154,32 @@ namespace RazorLight.Compilation
 				_cacheLock.Release();
 			}
 
-			// Now the lock has been released so we can do more expensive processing.
-			if (item.SupportsCompilation)
-			{
-				Debug.Assert(taskSource != null);
+			// // Now the lock has been released so we can do more expensive processing.
+			// if (item.SupportsCompilation)
+			// {
+			// 	Debug.Assert(taskSource != null);
 
-				//if (item.Descriptor?.Item != null &&
-				//	ChecksumValidator.IsItemValid(_projectEngine, item.Descriptor.Item))
-				//{
-				//	// If the item has checksums to validate, we should also have a precompiled view.
-				//	Debug.Assert(item.Descriptor != null);
+			// 	//if (item.Descriptor?.Item != null &&
+			// 	//	ChecksumValidator.IsItemValid(_projectEngine, item.Descriptor.Item))
+			// 	//{
+			// 	//	// If the item has checksums to validate, we should also have a precompiled view.
+			// 	//	Debug.Assert(item.Descriptor != null);
 
-				//	taskSource.SetResult(item.Descriptor);
-				//	return taskSource.Task;
-				//}
+			// 	//	taskSource.SetResult(item.Descriptor);
+			// 	//	return taskSource.Task;
+			// 	//}
 
-				try
-				{
-					CompiledTemplateDescriptor descriptor = await CompileAndEmitAsync(item.ProjectItem);
-					descriptor.ExpirationToken = cacheEntryOptions.ExpirationTokens.FirstOrDefault();
-					taskSource.SetResult(descriptor);
-				}
-				catch (Exception ex)
-				{
-					taskSource.SetException(ex);
-				}
-			}
+			// 	try
+			// 	{
+			// 		CompiledTemplateDescriptor descriptor = await CompileAndEmitAsync(item.ProjectItem);
+			// 		descriptor.ExpirationToken = cacheEntryOptions.ExpirationTokens.FirstOrDefault();
+			// 		taskSource.SetResult(descriptor);
+			// 	}
+			// 	catch (Exception ex)
+			// 	{
+			// 		taskSource.SetException(ex);
+			// 	}
+			// }
 
 			return await taskSource.Task;
 		}
@@ -217,23 +214,23 @@ namespace RazorLight.Compilation
 			};
 		}
 
-		protected virtual async Task<CompiledTemplateDescriptor> CompileAndEmitAsync(RazorLightProjectItem projectItem)
-		{
-			IGeneratedRazorTemplate generatedTemplate = await _razorSourceGenerator.GenerateCodeAsync(projectItem);
-			Assembly assembly = _compiler.CompileAndEmit(generatedTemplate);
+		// protected virtual async Task<CompiledTemplateDescriptor> CompileAndEmitAsync(RazorLightProjectItem projectItem)
+		// {
+		// 	IGeneratedRazorTemplate generatedTemplate = await _razorSourceGenerator.GenerateCodeAsync(projectItem);
+		// 	Assembly assembly = _compiler.CompileAndEmit(generatedTemplate);
 
-			// Anything we compile from source will use Razor 2.1 and so should have the new metadata.
-			var loader = new RazorCompiledItemLoader();
-			var item = loader.LoadItems(assembly).SingleOrDefault();
-			var attribute = assembly.GetCustomAttribute<RazorLightTemplateAttribute>();
+		// 	// Anything we compile from source will use Razor 2.1 and so should have the new metadata.
+		// 	var loader = new RazorCompiledItemLoader();
+		// 	var item = loader.LoadItems(assembly).SingleOrDefault();
+		// 	var attribute = assembly.GetCustomAttribute<RazorLightTemplateAttribute>();
 
-			return new CompiledTemplateDescriptor
-			{
-				Item = item,
-				TemplateKey = projectItem.Key,
-				TemplateAttribute = attribute
-			};
-		}
+		// 	return new CompiledTemplateDescriptor
+		// 	{
+		// 		Item = item,
+		// 		TemplateKey = projectItem.Key,
+		// 		TemplateAttribute = attribute
+		// 	};
+		// }
 
 		#region helpers
 

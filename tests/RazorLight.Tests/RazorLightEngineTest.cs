@@ -23,7 +23,6 @@ namespace RazorLight.Tests
 				.SetOperatingAssembly(typeof(Root).Assembly)
 #endif
 				.UseFileSystemProject(DirectoryUtils.RootDirectory)
-				.DisableEncoding()
 				.Build();
 
 			string key = "key";

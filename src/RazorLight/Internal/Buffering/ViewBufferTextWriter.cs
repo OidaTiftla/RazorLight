@@ -1,9 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Text;
-using System.Text.Encodings.Web;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Html;
 
 namespace RazorLight.Internal.Buffering
 {
@@ -20,7 +18,6 @@ namespace RazorLight.Internal.Buffering
 	public class ViewBufferTextWriter : TextWriter
 	{
 		private readonly TextWriter _inner;
-		private readonly HtmlEncoder _htmlEncoder;
 
 		/// <summary>
 		/// Creates a new instance of <see cref="ViewBufferTextWriter"/>.
@@ -48,11 +45,10 @@ namespace RazorLight.Internal.Buffering
 		/// </summary>
 		/// <param name="buffer">The <see cref="ViewBuffer"/> for buffered output.</param>
 		/// <param name="encoding">The <see cref="System.Text.Encoding"/>.</param>
-		/// <param name="htmlEncoder">The HTML encoder.</param>
 		/// <param name="inner">
 		/// The inner <see cref="TextWriter"/> to write output to when this instance is no longer buffering.
 		/// </param>
-		public ViewBufferTextWriter(ViewBuffer buffer, Encoding encoding, HtmlEncoder htmlEncoder, TextWriter inner)
+		public ViewBufferTextWriter(ViewBuffer buffer, Encoding encoding, TextWriter inner)
 		{
 			if (buffer == null)
 			{
@@ -64,11 +60,6 @@ namespace RazorLight.Internal.Buffering
 				throw new ArgumentNullException(nameof(encoding));
 			}
 
-			if (htmlEncoder == null)
-			{
-				throw new ArgumentNullException(nameof(htmlEncoder));
-			}
-
 			if (inner == null)
 			{
 				throw new ArgumentNullException(nameof(inner));
@@ -76,7 +67,6 @@ namespace RazorLight.Internal.Buffering
 
 			Buffer = buffer;
 			Encoding = encoding;
-			_htmlEncoder = htmlEncoder;
 			_inner = inner;
 		}
 
@@ -96,7 +86,7 @@ namespace RazorLight.Internal.Buffering
 		{
 			if (IsBuffering)
 			{
-				Buffer.AppendHtml(value.ToString());
+				Buffer.Append(value.ToString());
 			}
 			else
 			{
@@ -124,7 +114,7 @@ namespace RazorLight.Internal.Buffering
 
 			if (IsBuffering)
 			{
-				Buffer.AppendHtml(new string(buffer, index, count));
+				Buffer.Append(new string(buffer, index, count));
 			}
 			else
 			{
@@ -142,7 +132,7 @@ namespace RazorLight.Internal.Buffering
 
 			if (IsBuffering)
 			{
-				Buffer.AppendHtml(value);
+				Buffer.Append(value);
 			}
 			else
 			{
@@ -158,13 +148,13 @@ namespace RazorLight.Internal.Buffering
 				return;
 			}
 
-			IHtmlContentContainer container;
-			IHtmlContent content;
-			if ((container = value as IHtmlContentContainer) != null)
+			IStringContentContainer container;
+			string content;
+			if ((container = value as IStringContentContainer) != null)
 			{
 				Write(container);
 			}
-			else if ((content = value as IHtmlContent) != null)
+			else if ((content = value as string) != null)
 			{
 				Write(content);
 			}
@@ -175,31 +165,10 @@ namespace RazorLight.Internal.Buffering
 		}
 
 		/// <summary>
-		/// Writes an <see cref="IHtmlContent"/> value.
+		/// Writes an <see cref="IStringContentContainer"/> value.
 		/// </summary>
-		/// <param name="value">The <see cref="IHtmlContent"/> value.</param>
-		public void Write(IHtmlContent value)
-		{
-			if (value == null)
-			{
-				return;
-			}
-
-			if (IsBuffering)
-			{
-				Buffer.AppendHtml(value);
-			}
-			else
-			{
-				value.WriteTo(_inner, _htmlEncoder);
-			}
-		}
-
-		/// <summary>
-		/// Writes an <see cref="IHtmlContentContainer"/> value.
-		/// </summary>
-		/// <param name="value">The <see cref="IHtmlContentContainer"/> value.</param>
-		public void Write(IHtmlContentContainer value)
+		/// <param name="value">The <see cref="IStringContentContainer"/> value.</param>
+		public void Write(IStringContentContainer value)
 		{
 			if (value == null)
 			{
@@ -212,7 +181,7 @@ namespace RazorLight.Internal.Buffering
 			}
 			else
 			{
-				value.WriteTo(_inner, _htmlEncoder);
+				value.WriteTo(_inner);
 			}
 		}
 
@@ -224,14 +193,14 @@ namespace RazorLight.Internal.Buffering
 				return;
 			}
 
-			IHtmlContentContainer container;
-			IHtmlContent content;
-			if ((container = value as IHtmlContentContainer) != null)
+			IStringContentContainer container;
+			string content;
+			if ((container = value as IStringContentContainer) != null)
 			{
 				Write(container);
 				Write(NewLine);
 			}
-			else if ((content = value as IHtmlContent) != null)
+			else if ((content = value as string) != null)
 			{
 				Write(content);
 				Write(NewLine);
@@ -248,7 +217,7 @@ namespace RazorLight.Internal.Buffering
 		{
 			if (IsBuffering)
 			{
-				Buffer.AppendHtml(value.ToString());
+				Buffer.Append(value.ToString());
 				return Task.CompletedTask;
 			}
 			else
@@ -276,7 +245,7 @@ namespace RazorLight.Internal.Buffering
 
 			if (IsBuffering)
 			{
-				Buffer.AppendHtml(new string(buffer, index, count));
+				Buffer.Append(new string(buffer, index, count));
 				return Task.CompletedTask;
 			}
 			else
@@ -290,7 +259,7 @@ namespace RazorLight.Internal.Buffering
 		{
 			if (IsBuffering)
 			{
-				Buffer.AppendHtml(value);
+				Buffer.Append(value);
 				return Task.CompletedTask;
 			}
 			else
@@ -304,7 +273,7 @@ namespace RazorLight.Internal.Buffering
 		{
 			if (IsBuffering)
 			{
-				Buffer.AppendHtml(NewLine);
+				Buffer.Append(NewLine);
 			}
 			else
 			{
@@ -317,8 +286,8 @@ namespace RazorLight.Internal.Buffering
 		{
 			if (IsBuffering)
 			{
-				Buffer.AppendHtml(value);
-				Buffer.AppendHtml(NewLine);
+				Buffer.Append(value);
+				Buffer.Append(NewLine);
 			}
 			else
 			{
@@ -331,8 +300,8 @@ namespace RazorLight.Internal.Buffering
 		{
 			if (IsBuffering)
 			{
-				Buffer.AppendHtml(value.ToString());
-				Buffer.AppendHtml(NewLine);
+				Buffer.Append(value.ToString());
+				Buffer.Append(NewLine);
 				return Task.CompletedTask;
 			}
 			else
@@ -346,8 +315,8 @@ namespace RazorLight.Internal.Buffering
 		{
 			if (IsBuffering)
 			{
-				Buffer.AppendHtml(new string(value, start, offset));
-				Buffer.AppendHtml(NewLine);
+				Buffer.Append(new string(value, start, offset));
+				Buffer.Append(NewLine);
 				return Task.CompletedTask;
 			}
 			else
@@ -361,8 +330,8 @@ namespace RazorLight.Internal.Buffering
 		{
 			if (IsBuffering)
 			{
-				Buffer.AppendHtml(value);
-				Buffer.AppendHtml(NewLine);
+				Buffer.Append(value);
+				Buffer.Append(NewLine);
 				return Task.CompletedTask;
 			}
 			else
@@ -376,7 +345,7 @@ namespace RazorLight.Internal.Buffering
 		{
 			if (IsBuffering)
 			{
-				Buffer.AppendHtml(NewLine);
+				Buffer.Append(NewLine);
 				return Task.CompletedTask;
 			}
 			else
@@ -400,7 +369,7 @@ namespace RazorLight.Internal.Buffering
 			if (IsBuffering)
 			{
 				IsBuffering = false;
-				Buffer.WriteTo(_inner, _htmlEncoder);
+				Buffer.WriteTo(_inner);
 				Buffer.Clear();
 			}
 
@@ -423,7 +392,7 @@ namespace RazorLight.Internal.Buffering
 			if (IsBuffering)
 			{
 				IsBuffering = false;
-				await Buffer.WriteToAsync(_inner, _htmlEncoder);
+				await Buffer.WriteToAsync(_inner);
 				Buffer.Clear();
 			}
 

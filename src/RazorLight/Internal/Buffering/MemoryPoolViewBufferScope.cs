@@ -11,22 +11,22 @@ namespace RazorLight.Internal.Buffering
 	public class MemoryPoolViewBufferScope : IViewBufferScope, IDisposable
 	{
 		public static readonly int MinimumSize = 16;
-		private readonly ArrayPool<ViewBufferValue> _viewBufferPool;
+		private readonly ArrayPool<string> _viewBufferPool;
 		private readonly ArrayPool<char> _charPool;
-		private List<ViewBufferValue[]> _available;
-		private List<ViewBufferValue[]> _leased;
+		private List<string[]> _available;
+		private List<string[]> _leased;
 		private bool _disposed;
 
 		/// <summary>
 		/// Initializes a new instance of <see cref="MemoryPoolViewBufferScope"/>.
 		/// </summary>
 		/// <param name="viewBufferPool">
-		/// The <see cref="ArrayPool{ViewBufferValue}"/> for creating <see cref="ViewBufferValue"/> instances.
+		/// The <see cref="ArrayPool{string}"/> for creating <see cref="string"/> instances.
 		/// </param>
 		/// <param name="charPool">
 		/// The <see cref="ArrayPool{Char}"/> for creating <see cref="PagedBufferedTextWriter"/> instances.
 		/// </param>
-		public MemoryPoolViewBufferScope(ArrayPool<ViewBufferValue> viewBufferPool, ArrayPool<char> charPool)
+		public MemoryPoolViewBufferScope(ArrayPool<string> viewBufferPool, ArrayPool<char> charPool)
 		{
 			_viewBufferPool = viewBufferPool;
 			_charPool = charPool;
@@ -34,12 +34,12 @@ namespace RazorLight.Internal.Buffering
 
 		public MemoryPoolViewBufferScope()
 		{
-			_viewBufferPool = ArrayPool<ViewBufferValue>.Shared;
+			_viewBufferPool = ArrayPool<string>.Shared;
 			_charPool = ArrayPool<char>.Shared;
 		}
 
 		/// <inheritdoc />
-		public ViewBufferValue[] GetPage(int pageSize)
+		public string[] GetPage(int pageSize)
 		{
 			if (pageSize <= 0)
 			{
@@ -53,10 +53,10 @@ namespace RazorLight.Internal.Buffering
 
 			if (_leased == null)
 			{
-				_leased = new List<ViewBufferValue[]>(1);
+				_leased = new List<string[]>(1);
 			}
 
-			ViewBufferValue[] segment = null;
+			string[] segment = null;
 
 			// Reuse pages that have been returned before going back to the memory pool.
 			if (_available != null && _available.Count > 0)
@@ -81,7 +81,7 @@ namespace RazorLight.Internal.Buffering
 		}
 
 		/// <inheritdoc />
-		public void ReturnSegment(ViewBufferValue[] segment)
+		public void ReturnSegment(string[] segment)
 		{
 			if (segment == null)
 			{
@@ -92,7 +92,7 @@ namespace RazorLight.Internal.Buffering
 
 			if (_available == null)
 			{
-				_available = new List<ViewBufferValue[]>();
+				_available = new List<string[]>();
 			}
 
 			_available.Add(segment);

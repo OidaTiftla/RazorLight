@@ -74,7 +74,6 @@ namespace RazorLight
 				templatePage = templateFactory();
 			}
 
-			templatePage.DisableEncoding = Options.DisableEncoding ?? false;
 			return templatePage;
 		}
 
@@ -112,7 +111,7 @@ namespace RazorLight
 
 			using (var scope = new MemoryPoolViewBufferScope())
 			{
-				var renderer = new TemplateRenderer(this, HtmlEncoder.Default, scope);
+				var renderer = new TemplateRenderer(this, scope);
 				await renderer.RenderAsync(templatePage).ConfigureAwait(false);
 			}
 		}

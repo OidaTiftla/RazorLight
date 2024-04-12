@@ -118,14 +118,6 @@ namespace RazorLight.Tests
 				.UseOptions(new RazorLightOptions{CachingProvider = new MemoryCachingProvider()});
 			Assert.Throws<RazorLightException>(() => engine.Build());
 
-			engine = GetEngine().DisableEncoding()
-				.UseOptions(new RazorLightOptions { DisableEncoding = true});
-			Assert.Throws<RazorLightException>(() => engine.Build());
-
-			engine = GetEngine().EnableEncoding()
-				.UseOptions(new RazorLightOptions { DisableEncoding = false });
-			Assert.Throws<RazorLightException>(() => engine.Build());
-
 			engine = GetEngine().EnableDebugMode()
 				.UseOptions(new RazorLightOptions { EnableDebugMode = false });
 			Assert.Throws<RazorLightException>(() => engine.Build());
@@ -133,32 +125,6 @@ namespace RazorLight.Tests
 			engine = GetEngine().EnableDebugMode(false)
 				.UseOptions(new RazorLightOptions { EnableDebugMode = true });
 			Assert.Throws<RazorLightException>(() => engine.Build());
-		}
-
-		[Fact]
-		public void EngineBuilder_Can_Set_EncodingOption_Only_Once()
-		{
-			var engine = new RazorLightEngineBuilder().DisableEncoding();
-			Assert.NotNull(engine);
-
-			Assert.Throws<RazorLightException>(() => new RazorLightEngineBuilder().DisableEncoding().EnableEncoding());
-			Assert.Throws<RazorLightException>(() => new RazorLightEngineBuilder().DisableEncoding().DisableEncoding());
-			Assert.Throws<RazorLightException>(() => new RazorLightEngineBuilder().EnableEncoding().DisableEncoding());
-			Assert.Throws<RazorLightException>(() => new RazorLightEngineBuilder().EnableEncoding().EnableEncoding());
-		}
-
-		[Fact]
-		public void DisableEncoding_Defaults_To_False()
-		{
-			var engine = new RazorLightEngineBuilder()
-				.UseMemoryCachingProvider()
-#if NETFRAMEWORK
-				.SetOperatingAssembly(typeof(Root).Assembly)
-#endif
-				.UseEmbeddedResourcesProject(typeof(Root))
-				.Build();
-			
-			Assert.False(engine.Options.DisableEncoding);
 		}
 
 		[Fact]

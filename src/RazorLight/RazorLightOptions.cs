@@ -33,13 +33,6 @@ namespace RazorLight
 		public Assembly OperatingAssembly { get; set; }
 
 		/// <summary>
-		/// Settings this to <c>true</c> will disable HTML encoding in all templates.
-		/// It can be re-enabled by setting <c>DisableEncoding = false</c> in the
-		/// template.
-		/// </summary>
-		public bool? DisableEncoding { get; set; }
-
-		/// <summary>
 		/// Setting this to <c>true</c> provides more information in exceptions.
 		/// </summary>
 		public bool? EnableDebugMode { get; set; }

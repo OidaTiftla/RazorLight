@@ -28,8 +28,6 @@ namespace RazorLight
 
 		protected ICachingProvider cachingProvider;
 
-		private bool? disableEncoding;
-
 		private bool? enableDebugMode;
 
 		private RazorLightOptions options;
@@ -115,49 +113,6 @@ namespace RazorLight
 		public RazorLightEngineBuilder UseOptions(RazorLightOptions razorLightOptions)
 		{
 			options = razorLightOptions;
-			return this;
-		}
-
-		/// <summary>
-		/// Disables encoding of HTML entities in variables.
-		/// </summary>
-		/// <example>
-		/// The model contains a property with value "&gt;hello&lt;".
-		/// 
-		/// In the rendered template this will be:
-		/// 
-		/// <code>
-		/// &gt;hello&lt;
-		/// </code>
-		/// </example>
-		/// <returns>A <see cref="RazorLightEngineBuilder"/></returns>
-		public RazorLightEngineBuilder DisableEncoding()
-		{
-			if (disableEncoding.HasValue)
-				throw new RazorLightException($"{nameof(disableEncoding)} has already been set");
-
-			disableEncoding = true;
-			return this;
-		}
-
-		/// <summary>
-		/// Enables encoding of HTML entities in variables.
-		/// </summary>
-		/// <example>
-		/// The model contains a property with value "&gt;hello&lt;".
-		/// 
-		/// In the rendered template this will be:
-		/// 
-		/// <code>
-		/// &amp;gt;hello&amp;lt;
-		/// </code>
-		/// </example>
-		/// <returns>A <see cref="RazorLightEngineBuilder"/></returns>
-		public RazorLightEngineBuilder EnableEncoding()
-		{
-			if (disableEncoding.HasValue)
-				throw new RazorLightException($"{nameof(disableEncoding)} has already been set");
-			disableEncoding = false;
 			return this;
 		}
 
@@ -324,19 +279,6 @@ namespace RazorLight
 					ThrowIfHasBeenSetExplicitly(nameof(cachingProvider));
 
 				options.CachingProvider = cachingProvider;
-			}
-
-			if (disableEncoding.HasValue)
-			{
-				if(options.DisableEncoding != null)
-					ThrowIfHasBeenSetExplicitly(nameof(disableEncoding));
-
-				options.DisableEncoding = options.DisableEncoding ?? disableEncoding ?? false;
-			}
-			else
-			{
-				if (!options.DisableEncoding.HasValue)
-					options.DisableEncoding = false;
 			}
 
 			if (enableDebugMode.HasValue && options.EnableDebugMode.HasValue)

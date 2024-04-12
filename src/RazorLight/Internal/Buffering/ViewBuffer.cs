@@ -2,17 +2,15 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Text.Encodings.Web;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Html;
 
 namespace RazorLight.Internal.Buffering
 {
 	/// <summary>
-	/// An <see cref="IHtmlContentBuilder"/> that is backed by a buffer provided by <see cref="IViewBufferScope"/>.
+	/// An <see cref="IStringContentBuilder"/> that is backed by a buffer provided by <see cref="IViewBufferScope"/>.
 	/// </summary>
 	[DebuggerDisplay("{DebuggerToString()}")]
-	public class ViewBuffer : IHtmlContentBuilder
+	public class ViewBuffer : IStringContentBuilder
 	{
 		public static readonly int PartialViewPageSize = 32;
 		public static readonly int TagHelperPageSize = 32;
@@ -87,44 +85,20 @@ namespace RazorLight.Internal.Buffering
 		}
 
 		/// <inheritdoc />
-		public IHtmlContentBuilder Append(string unencoded)
-		{
-			if (unencoded == null)
-			{
-				return this;
-			}
-
-			// Text that needs encoding is the uncommon case in views, which is why it
-			// creates a wrapper and pre-encoded text does not.
-			AppendValue(new ViewBufferValue(new EncodingWrapper(unencoded)));
-			return this;
-		}
-
-		/// <inheritdoc />
-		public IHtmlContentBuilder AppendHtml(IHtmlContent content)
+		public IStringContentBuilder Append(string content)
 		{
 			if (content == null)
 			{
 				return this;
 			}
 
-			AppendValue(new ViewBufferValue(content));
+			// Text that needs encoding is the uncommon case in views, which is why it
+			// creates a wrapper and pre-encoded text does not.
+			AppendValue(content);
 			return this;
 		}
 
-		/// <inheritdoc />
-		public IHtmlContentBuilder AppendHtml(string encoded)
-		{
-			if (encoded == null)
-			{
-				return this;
-			}
-
-			AppendValue(new ViewBufferValue(encoded));
-			return this;
-		}
-
-		private void AppendValue(ViewBufferValue value)
+		private void AppendValue(string value)
 		{
 			var page = GetCurrentPage();
 			page.Append(value);
@@ -156,7 +130,7 @@ namespace RazorLight.Internal.Buffering
 		}
 
 		/// <inheritdoc />
-		public IHtmlContentBuilder Clear()
+		public IStringContentBuilder Clear()
 		{
 			_multiplePages = null;
 			_currentPage = null;
@@ -164,16 +138,11 @@ namespace RazorLight.Internal.Buffering
 		}
 
 		/// <inheritdoc />
-		public void WriteTo(TextWriter writer, HtmlEncoder encoder)
+		public void WriteTo(TextWriter writer)
 		{
 			if (writer == null)
 			{
 				throw new ArgumentNullException(nameof(writer));
-			}
-
-			if (encoder == null)
-			{
-				throw new ArgumentNullException(nameof(encoder));
 			}
 
 			for (var i = 0; i < Count; i++)
@@ -182,18 +151,8 @@ namespace RazorLight.Internal.Buffering
 				for (var j = 0; j < page.Count; j++)
 				{
 					var value = page.Buffer[j];
-
-					if (value.Value is string valueAsString)
-					{
-						writer.Write(valueAsString);
-						continue;
-					}
-
-					if (value.Value is IHtmlContent valueAsHtmlContent)
-					{
-						valueAsHtmlContent.WriteTo(writer, encoder);
-						continue;
-					}
+					writer.Write(value);
+					continue;
 				}
 			}
 		}
@@ -202,18 +161,12 @@ namespace RazorLight.Internal.Buffering
 		/// Writes the buffered content to <paramref name="writer"/>.
 		/// </summary>
 		/// <param name="writer">The <see cref="TextWriter"/>.</param>
-		/// <param name="encoder">The <see cref="HtmlEncoder"/>.</param>
 		/// <returns>A <see cref="Task"/> which will complete once content has been written.</returns>
-		public async Task WriteToAsync(TextWriter writer, HtmlEncoder encoder)
+		public async Task WriteToAsync(TextWriter writer)
 		{
 			if (writer == null)
 			{
 				throw new ArgumentNullException(nameof(writer));
-			}
-
-			if (encoder == null)
-			{
-				throw new ArgumentNullException(nameof(encoder));
 			}
 
 			for (var i = 0; i < Count; i++)
@@ -222,32 +175,15 @@ namespace RazorLight.Internal.Buffering
 				for (var j = 0; j < page.Count; j++)
 				{
 					var value = page.Buffer[j];
-
-					if (value.Value is string valueAsString)
-					{
-						await writer.WriteAsync(valueAsString);
-						continue;
-					}
-
-					if (value.Value is ViewBuffer valueAsViewBuffer)
-					{
-						await valueAsViewBuffer.WriteToAsync(writer, encoder);
-						continue;
-					}
-
-					if (value.Value is IHtmlContent valueAsHtmlContent)
-					{
-						valueAsHtmlContent.WriteTo(writer, encoder);
-						await writer.FlushAsync();
-						continue;
-					}
+					await writer.WriteAsync(value);
+					continue;
 				}
 			}
 		}
 
 		private string DebuggerToString() => _name;
 
-		public void CopyTo(IHtmlContentBuilder destination)
+		public void CopyTo(IStringContentBuilder destination)
 		{
 			if (destination == null)
 			{
@@ -260,26 +196,12 @@ namespace RazorLight.Internal.Buffering
 				for (var j = 0; j < page.Count; j++)
 				{
 					var value = page.Buffer[j];
-
-					string valueAsString;
-					IHtmlContentContainer valueAsContainer;
-					if ((valueAsString = value.Value as string) != null)
-					{
-						destination.AppendHtml(valueAsString);
-					}
-					else if ((valueAsContainer = value.Value as IHtmlContentContainer) != null)
-					{
-						valueAsContainer.CopyTo(destination);
-					}
-					else
-					{
-						destination.AppendHtml((IHtmlContent)value.Value);
-					}
+					destination.Append(value);
 				}
 			}
 		}
 
-		public void MoveTo(IHtmlContentBuilder destination)
+		public void MoveTo(IStringContentBuilder destination)
 		{
 			if (destination == null)
 			{
@@ -300,21 +222,7 @@ namespace RazorLight.Internal.Buffering
 				for (var j = 0; j < page.Count; j++)
 				{
 					var value = page.Buffer[j];
-
-					string valueAsString;
-					IHtmlContentContainer valueAsContainer;
-					if ((valueAsString = value.Value as string) != null)
-					{
-						destination.AppendHtml(valueAsString);
-					}
-					else if ((valueAsContainer = value.Value as IHtmlContentContainer) != null)
-					{
-						valueAsContainer.MoveTo(destination);
-					}
-					else
-					{
-						destination.AppendHtml((IHtmlContent)value.Value);
-					}
+					destination.Append(value);
 				}
 			}
 
@@ -367,21 +275,6 @@ namespace RazorLight.Internal.Buffering
 			}
 
 			Clear();
-		}
-
-		private class EncodingWrapper : IHtmlContent
-		{
-			private readonly string _unencoded;
-
-			public EncodingWrapper(string unencoded)
-			{
-				_unencoded = unencoded;
-			}
-
-			public void WriteTo(TextWriter writer, HtmlEncoder encoder)
-			{
-				encoder.Encode(writer, _unencoded);
-			}
 		}
 	}
 }

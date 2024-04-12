@@ -3,7 +3,7 @@
 @inherits RazorLight.TemplatePage<object>
 
 @{
-	IHtmlContent b(string text) => HelperFunction(@<strong>@text</strong>);
+	string b(string text) => HelperFunction(@<strong>@text</strong>);
 }
 
 @b("LocalFunctionUsingHelper")
